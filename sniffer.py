@@ -25,7 +25,7 @@ class Packet:
         self.dst = header[9]
 
         self.src_addr = ipaddress.ip_address(self.src)
-        self.src_addr = ipaddress.ip_address(self.dst)
+        self.dst_addr = ipaddress.ip_address(self.dst)
 
         self.protocol_map = {1: "ICMP"}
 
@@ -35,11 +35,23 @@ class Packet:
             print(f'{e} No protocol for {self.pro}')
             self.protocol = str(self.pro)
 
+    def print_header_short(self):
+        print(f'Protocol: {self.protocol} {self.src_addr} -> {self.dst_addr}')
 
 
+def sniff(host):
+    socket_protocol = socket.IPPROTO_ICMP
+    sniffer = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket_protocol)
+    sniffer.bind((host, 0))
+    sniffer.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
 
-def sniff():
-    pass
+    try:
+        while True:
+            raw_data = sniffer.recv(65535)
+            packet = Packet(raw_data)
+            packet.print_header_short()
+    except KeyboardInterrupt:
+        sys.exit(1)
 
 if __name__ == '__main__':
-    sniff()
+    sniff(opts.ip)
