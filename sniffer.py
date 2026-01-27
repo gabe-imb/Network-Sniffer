@@ -6,6 +6,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Network Packet Sniffer')
 parser.add_argument('--ip', help='IP address to sniff on', required=True)
+parser.add_argument('--proto', help='Protocol to sniff (TCP/ICMP)', required=True)
 opts = parser.parse_args()
 
 class Packet:
@@ -27,7 +28,7 @@ class Packet:
         self.src_addr = ipaddress.ip_address(self.src)
         self.dst_addr = ipaddress.ip_address(self.dst)
 
-        self.protocol_map = {1: "ICMP"}
+        self.protocol_map = {1: "ICMP", 6: "TCP"}
 
         try:
             self.protocol = self.protocol_map[self.pro]
@@ -40,7 +41,10 @@ class Packet:
 
 
 def sniff(host):
-    socket_protocol = socket.IPPROTO_ICMP
+    if opts.proto == 'tcp':
+        socket_protocol = socket.IPPROTO_TCP
+    else:
+        socket_protocol = socket.IPPROTO_ICMP
     sniffer = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket_protocol)
     sniffer.bind((host, 0))
     sniffer.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
