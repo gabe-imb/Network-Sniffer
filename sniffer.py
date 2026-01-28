@@ -3,16 +3,19 @@ import socket
 import struct
 import sys
 import argparse
+import os
+print("RUNNING FILE:", os.path.abspath(__file__))
 
 parser = argparse.ArgumentParser(description='Network Packet Sniffer')
 parser.add_argument('--ip', help='IP address to sniff on', required=True)
 parser.add_argument('--proto', help='Protocol to sniff (TCP/ICMP)', required=True)
+parser.add_argument('--data', help='Display data', action='store_true')
 opts = parser.parse_args()
 
 class Packet:
     def __init__(self, data):
         self.packet = data
-        header = struct.unpack('<BBHHHBBH4s4s', self.packet[0:20])
+        header = struct.unpack('!BBHHHBBH4s4s', self.packet[0:20])
         self.ver = header[0] >> 4
         self.ihl = header[0] & 0xF
         self.tos = header[1]
@@ -38,6 +41,17 @@ class Packet:
 
     def print_header_short(self):
         print(f'Protocol: {self.protocol} {self.src_addr} -> {self.dst_addr}')
+    
+    def print_data(self):
+        data = self.packet[20:]
+        print('*'*10 + 'ASCII START' + '*'*10)
+        for b in data:
+            if b < 128:
+                print(chr(b), end='')
+            else:
+                print('.', end='')
+        print('*'*10 + 'ASCII END' + '*'*10)
+
 
 
 def sniff(host):
@@ -54,6 +68,9 @@ def sniff(host):
             raw_data = sniffer.recv(65535)
             packet = Packet(raw_data)
             packet.print_header_short()
+            if opts.data:
+                packet.print_data()
+
     except KeyboardInterrupt:
         sys.exit(1)
 
