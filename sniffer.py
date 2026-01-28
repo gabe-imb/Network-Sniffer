@@ -3,8 +3,6 @@ import socket
 import struct
 import sys
 import argparse
-import os
-print("RUNNING FILE:", os.path.abspath(__file__))
 
 parser = argparse.ArgumentParser(description='Network Packet Sniffer')
 parser.add_argument('--ip', help='IP address to sniff on', required=True)
